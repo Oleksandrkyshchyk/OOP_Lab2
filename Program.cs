@@ -1,215 +1,264 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-class Program
+namespace OOP_Lab2
 {
-    static void Main()
+    class Program
     {
-        Console.OutputEncoding = System.Text.Encoding.UTF8;
-        Console.InputEncoding = System.Text.Encoding.UTF8;
-
-        List<GameCharacter> characters = new List<GameCharacter>();
-
-        while (true)
+        static void Main()
         {
-            Console.WriteLine("\n--- МЕНЮ ---");
-            Console.WriteLine("1 - Додати об'єкт");
-            Console.WriteLine("2 - Переглянути всі об'єкти");
-            Console.WriteLine("3 - Знайти об'єкт");
-            Console.WriteLine("4 - Продемонструвати поведінку");
-            Console.WriteLine("5 - Видалити об'єкт");
-            Console.WriteLine("0 - Вийти");
-            Console.Write("Ваш вибір: ");
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.InputEncoding = System.Text.Encoding.UTF8;
 
-            string choice = Console.ReadLine();
+            Console.Write("Введіть максимальну кількість персонажів: ");
+            int maxCount;
 
-            switch (choice)
+            while (!int.TryParse(Console.ReadLine(), out maxCount) || maxCount <= 0)
             {
-                case "1":
-                    AddCharacter(characters);
-                    break;
-
-                case "2":
-                    ShowAll(characters);
-                    break;
-
-                case "3":
-                    FindCharacter(characters);
-                    break;
-
-                case "4":
-                    Demonstrate(characters);
-                    break;
-
-                case "5":
-                    DeleteCharacter(characters);
-                    break;
-
-                case "0":
-                    return;
-
-                default:
-                    Console.WriteLine("❌ Невірний вибір!");
-                    break;
+                Console.WriteLine("Помилка! Введіть число > 0:");
             }
+
+            List<GameCharacter> characters = new List<GameCharacter>();
+            int choice;
+
+            do
+            {
+                Console.WriteLine("\n===== МЕНЮ =====");
+                Console.WriteLine("1 - Додати об'єкт");
+                Console.WriteLine("2 - Переглянути всі об'єкти");
+                Console.WriteLine("3 - Знайти об'єкт");
+                Console.WriteLine("4 - Продемонструвати поведінку");
+                Console.WriteLine("5 - Видалити об'єкт");
+                Console.WriteLine("0 - Вийти");
+                Console.Write("Ваш вибір: ");
+
+                int.TryParse(Console.ReadLine(), out choice);
+
+                switch (choice)
+                {
+                    case 1:
+                        AddCharacter(characters, maxCount);
+                        break;
+                    case 2:
+                        ShowAll(characters);
+                        break;
+                    case 3:
+                        FindCharacter(characters);
+                        break;
+                    case 4:
+                        DemonstrateBehavior(characters);
+                        break;
+                    case 5:
+                        DeleteCharacter(characters);
+                        break;
+                    case 0:
+                        Console.WriteLine("Вихід з програми...");
+                        break;
+                    default:
+                        Console.WriteLine("Невірний вибір!");
+                        break;
+                }
+
+            } while (choice != 0);
         }
-    }
 
-    // ---------- MENU ACTIONS ----------
-
-    static void AddCharacter(List<GameCharacter> list)
-    {
-        Console.WriteLine("\nСтворення нового персонажа");
-
-        string name;
-        while (true)
+        // 1. Додавання персонажа
+        static void AddCharacter(List<GameCharacter> list, int max)
         {
-            Console.Write("Ім’я (3–15): ");
-            name = Console.ReadLine();
+            if (list.Count >= max)
+            {
+                Console.WriteLine("Досягнуто максимальної кількості персонажів!");
+                return;
+            }
 
             try
             {
-                if (name.Length >= 3 && name.Length <= 15) break;
-                throw new Exception();
+                Console.Write("Ім’я (3–15): ");
+                string name = Console.ReadLine();
+
+                Console.Write("Рівень (1–100): ");
+                int level = int.Parse(Console.ReadLine());
+
+                Console.Write("Здоров’я (0–100): ");
+                int health = int.Parse(Console.ReadLine());
+
+                Console.Write("Досвід: ");
+                double xp = double.Parse(Console.ReadLine());
+
+                Console.WriteLine("Оберіть клас:");
+                int i = 0;
+                foreach (var cls in Enum.GetNames(typeof(CharacterClass)))
+                {
+                    Console.WriteLine($"{i} - {cls}");
+                    i++;
+                }
+
+                int classIndex = int.Parse(Console.ReadLine());
+
+                GameCharacter ch = new GameCharacter(
+                    name,
+                    level,
+                    health,
+                    xp,
+                    (CharacterClass)classIndex
+                );
+
+                list.Add(ch);
+                Console.WriteLine("Персонажа додано!");
             }
-            catch
+            catch (Exception ex)
             {
-                Console.WriteLine("Помилка: ім’я повинно містити 3–15 символів.");
+                Console.WriteLine($"Помилка введення: {ex.Message}");
             }
         }
 
-        int level;
-        while (true)
+        // 2. Перегляд усіх
+        static void ShowAll(List<GameCharacter> list)
         {
-            Console.Write("Рівень (1–100): ");
-            if (int.TryParse(Console.ReadLine(), out level) && level >= 1 && level <= 100)
-                break;
-            Console.WriteLine("Помилка!");
-        }
-
-        Console.WriteLine("\nОберіть клас персонажа:");
-
-        int index = 0;
-        foreach (var c in Enum.GetNames(typeof(CharacterClass)))
-        {
-            Console.WriteLine($"{index} - {c}");
-            index++;
-        }
-
-        int classIndex;
-        Console.Write("Ваш вибір: ");
-
-        while (!int.TryParse(Console.ReadLine(), out classIndex) ||
-               classIndex < 0 ||
-               classIndex >= Enum.GetValues(typeof(CharacterClass)).Length)
-        {
-            Console.WriteLine("❌ Помилка! Введіть номер класу зі списку:");
-        }
-
-        CharacterClass classType = (CharacterClass)classIndex;
-
-        GameCharacter newChar = new GameCharacter(name, level, classType);
-        list.Add(newChar);
-
-        Console.WriteLine("Персонажа додано!");
-    }
-
-    static void ShowAll(List<GameCharacter> list)
-    {
-        if (list.Count == 0)
-        {
-            Console.WriteLine("Список порожній.");
-            return;
-        }
-
-        foreach (var ch in list)
-            ch.ShowStats();
-    }
-
-    static void FindCharacter(List<GameCharacter> list)
-    {
-        Console.Write("Введіть ім’я: ");
-        string name = Console.ReadLine();
-
-        foreach (var ch in list)
-        {
-            if (ch.Name == name)
+            if (list.Count == 0)
             {
-                ch.ShowStats();
+                Console.WriteLine("Список порожній!");
                 return;
             }
+
+            Console.WriteLine("\nНомер| Імʼя        | Клас        | Рівень | HP  | XP");
+            Console.WriteLine("-----------------------------------------------------");
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                Console.WriteLine(
+                    $" {i + 1}| {list[i].Name,-10} | {list[i].ClassType,-10} | {list[i].Level,6} | {list[i].Health,3} | {list[i].Experience}");
+            }
         }
 
-        Console.WriteLine("Не знайдено.");
-    }
-
-    static void Demonstrate(List<GameCharacter> list)
-    {
-        Console.Write("Ім’я персонажа: ");
-        string name = Console.ReadLine();
-
-        var ch = list.Find(c => c.Name == name);
-
-        if (ch == null)
+        // 3. Пошук
+        static void FindCharacter(List<GameCharacter> list)
         {
-            Console.WriteLine("Не знайдено.");
-            return;
+            if (list.Count == 0)
+            {
+                Console.WriteLine("Список порожній!");
+                return;
+            }
+
+            Console.WriteLine("Шукати за:");
+            Console.WriteLine("1 - Імʼям");
+            Console.WriteLine("2 - Класом");
+            Console.Write("Ваш вибір: ");
+
+            int option;
+            if (!int.TryParse(Console.ReadLine(), out option))
+            {
+                Console.WriteLine("Невірний вибір!");
+                return;
+            }
+
+            List<GameCharacter> found = new List<GameCharacter>();
+
+            if (option == 1)
+            {
+                Console.Write("Введіть імʼя: ");
+                string name = Console.ReadLine();
+                found = list.FindAll(c => c.Name == name);
+            }
+            else if (option == 2)
+            {
+                Console.WriteLine("Оберіть клас:");
+                int i = 0;
+                foreach (var cls in Enum.GetNames(typeof(CharacterClass)))
+                {
+                    Console.WriteLine($"{i} - {cls}");
+                    i++;
+                }
+
+                int clsIndex;
+                if (!int.TryParse(Console.ReadLine(), out clsIndex) ||
+                    clsIndex < 0 ||
+                    clsIndex >= Enum.GetValues(typeof(CharacterClass)).Length)
+                {
+                    Console.WriteLine("Невірний клас!");
+                    return;
+                }
+
+                found = list.FindAll(c => c.ClassType == (CharacterClass)clsIndex);
+            }
+            else
+            {
+                Console.WriteLine("Невірний варіант!");
+                return;
+            }
+
+            if (found.Count == 0)
+            {
+                Console.WriteLine("Нічого не знайдено!");
+                return;
+            }
+
+            Console.WriteLine("\nНомер| Імʼя        | Клас        | Рівень | HP  | XP");
+            Console.WriteLine("-----------------------------------------------------");
+
+            for (int j = 0; j < found.Count; j++)
+            {
+                Console.WriteLine(
+                    $" {j + 1}| {found[j].Name,-10} | {found[j].ClassType,-10} | {found[j].Level,6} | {found[j].Health,3} | {found[j].Experience}");
+            }
         }
 
-        Console.WriteLine("1 - Завдати шкоди");
-        Console.WriteLine("2 - Зцілити");
-        Console.WriteLine("3 - Додати XP");
-
-        int act;
-        if (!int.TryParse(Console.ReadLine(), out act))
+        // 4. Демонстрація поведінки
+        static void DemonstrateBehavior(List<GameCharacter> list)
         {
-            Console.WriteLine("Помилка!");
-            return;
+            Console.Write("Ім’я персонажа: ");
+            string name = Console.ReadLine();
+
+            var ch = list.Find(c => c.Name == name);
+
+            if (ch == null)
+            {
+                Console.WriteLine("Персонажа не знайдено!");
+                return;
+            }
+
+            Console.WriteLine("1 - Завдати шкоди");
+            Console.WriteLine("2 - Зцілити");
+            Console.WriteLine("3 - Додати XP");
+
+            int act = int.Parse(Console.ReadLine());
+
+            switch (act)
+            {
+                case 1:
+                    Console.Write("Шкода: ");
+                    ch.TakeDamage(int.Parse(Console.ReadLine()));
+                    break;
+                case 2:
+                    Console.Write("Зцілити на: ");
+                    ch.Heal(int.Parse(Console.ReadLine()));
+                    break;
+                case 3:
+                    Console.Write("XP: ");
+                    ch.GainExperience(double.Parse(Console.ReadLine()));
+                    break;
+                default:
+                    Console.WriteLine("Невірна дія!");
+                    break;
+            }
         }
 
-        switch (act)
+        // 5. Видалення
+        static void DeleteCharacter(List<GameCharacter> list)
         {
-            case 1:
-                Console.Write("Шкода: ");
-                if (int.TryParse(Console.ReadLine(), out int dmg) && dmg >= 0 && dmg <= 100)
-                    ch.TakeDamage(dmg);
-                else Console.WriteLine("Некоректно!");
-                break;
+            Console.Write("Ім’я персонажа: ");
+            string name = Console.ReadLine();
 
-            case 2:
-                Console.Write("Зцілити на: ");
-                if (int.TryParse(Console.ReadLine(), out int heal) && heal >= 0 && heal <= 100)
-                    ch.Heal(heal);
-                else Console.WriteLine("Некоректно!");
-                break;
+            var ch = list.Find(c => c.Name == name);
 
-            case 3:
-                Console.Write("XP: ");
-                if (double.TryParse(Console.ReadLine(), out double xp) && xp >= 0)
-                    ch.GainExperience(xp);
-                else Console.WriteLine("Некоректно!");
-                break;
+            if (ch == null)
+            {
+                Console.WriteLine("Не знайдено.");
+                return;
+            }
 
-            default:
-                Console.WriteLine("Помилка!");
-                break;
+            list.Remove(ch);
+            Console.WriteLine("Персонажа видалено.");
         }
-    }
-
-    static void DeleteCharacter(List<GameCharacter> list)
-    {
-        Console.Write("Ім’я: ");
-        string name = Console.ReadLine();
-
-        var ch = list.Find(c => c.Name == name);
-
-        if (ch == null)
-        {
-            Console.WriteLine("Не знайдено.");
-            return;
-        }
-
-        list.Remove(ch);
-        Console.WriteLine("Персонажа видалено.");
     }
 }
