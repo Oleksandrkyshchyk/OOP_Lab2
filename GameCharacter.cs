@@ -1,142 +1,125 @@
-﻿using System;
+using System;
 
-public enum CharacterClass
+namespace OOP_Lab2
 {
-    Warrior,
-    Mage,
-    Archer,
-    Healer,
-    Assassin
-}
-
-public class GameCharacter
-{
-    private string _name;
-    private int _level;
-    private int _health;
-    private double _experience;
-    private CharacterClass _classType;
-    private bool _isAlive;
-
-    public string Description { get; set; } = "Новий персонаж";
-
-    public bool IsMaxLevel => Level == 100;
-
-    public string Name
+    public enum CharacterClass
     {
-        get => _name;
-        set
+        Warrior,
+        Mage,
+        Archer,
+        Healer,
+        Assassin
+    }
+
+    public class GameCharacter
+    {
+        // private-поля
+        private string _name;
+        private int _level;
+        private int _health;
+        private double _experience;
+        private CharacterClass _classType;
+
+        // 3. Автовластивість з дефолтним значенням
+        public string Description { get; set; } = "Новий персонаж";
+
+        // 2. Властивості з валідацією
+        public string Name
         {
-            if (value.Length < 3 || value.Length > 15)
-                throw new ArgumentException("Ім’я повинно містити 3–15 символів.");
-            _name = value;
+            get => _name;
+            set
+            {
+                if (value.Length < 3 || value.Length > 15)
+                    throw new ArgumentException("Імʼя має бути 3–15 символів");
+                _name = value;
+            }
         }
-    }
 
-    public int Level
-    {
-        get => _level;
-        private set
+        public int Level
         {
-            if (value < 1 || value > 100)
-                throw new ArgumentOutOfRangeException("Рівень має бути у діапазоні 1–100.");
-            _level = value;
+            get => _level;
+            set
+            {
+                if (value < 1 || value > 100)
+                    throw new ArgumentOutOfRangeException("Рівень 1–100");
+                _level = value;
+            }
         }
-    }
 
-    public int Health
-    {
-        get => _health;
-        private set
+        public int Health
         {
-            if (value < 0 || value > 100)
-                throw new ArgumentOutOfRangeException("Здоров’я має бути у діапазоні 0–100.");
-
-            _health = value;
-            CheckDeath();
+            get => _health;
+            set
+            {
+                if (value < 0 || value > 100)
+                    throw new ArgumentOutOfRangeException("Здоровʼя 0–100");
+                _health = value;
+                CheckDeath();
+            }
         }
-    }
 
-    public double Experience
-    {
-        get => _experience;
-        private set
+        public double Experience
         {
-            if (value < 0)
-                throw new ArgumentException("Досвід не може бути від’ємним.");
-            _experience = value;
+            get => _experience;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentException("XP не може бути відʼємним");
+                _experience = value;
+            }
         }
-    }
 
-    public bool IsAlive => _isAlive;
+        // 5. Різні рівні доступу get / set
+        public CharacterClass ClassType
+        {
+            get => _classType;
+            private set => _classType = value;
+        }
 
-    public CharacterClass ClassType
-    {
-        get => _classType;
-        private set => _classType = value;
-    }
+        // 4. Обчислювальні властивості
+        public bool IsAlive => Health > 0;
+        public bool IsMaxLevel => Level == 100;
 
-    public GameCharacter(string name, int level, CharacterClass classType)
-    {
-        Name = name;
-        Level = level;
-        ClassType = classType;
+        // Конструктор
+        public GameCharacter(string name, int level, int health, double experience, CharacterClass classType)
+        {
+            Name = name;
+            Level = level;
+            Health = health;
+            Experience = experience;
+            ClassType = classType;
+        }
 
-        Health = 100;
-        Experience = 0;
-        _isAlive = true;
-    }
+        // 6. Private-метод
+        private void CheckDeath()
+        {
+            if (_health == 0)
+                Console.WriteLine($"⚠ {_name} загинув!");
+        }
 
-    // методи
-    private void CheckDeath()
-    {
-        _isAlive = _health > 0;
-    }
+        // Поведінка
+        public void TakeDamage(int dmg)
+        {
+            if (dmg < 0) return;
+            Health = Math.Max(0, Health - dmg);
+        }
 
-    private void ClampHealth()
-    {
-        if (_health < 0) _health = 0;
-        if (_health > 100) _health = 100;
-    }
+        public void Heal(int amount)
+        {
+            if (amount < 0) return;
+            Health = Math.Min(100, Health + amount);
+        }
 
-    public void TakeDamage(int dmg)
-    {
-        if (dmg < 0)
-            throw new ArgumentException("Шкода не може бути від’ємною!");
+        public void GainExperience(double xp)
+        {
+            if (xp < 0) return;
+            Experience += xp;
+        }
 
-        Health -= dmg;
-        ClampHealth();
-        CheckDeath();
-    }
-
-    public void Heal(int amount)
-    {
-        if (amount < 0)
-            throw new ArgumentException("Лікування не може бути від’ємним!");
-
-        Health += amount;
-        ClampHealth();
-    }
-
-    public void GainExperience(double xp)
-    {
-        if (xp < 0)
-            throw new ArgumentException("XP не може бути від’ємним!");
-
-        Experience += xp;
-    }
-
-    public void ShowStats()
-    {
-        Console.WriteLine("\n--- Характеристики персонажа ---");
-        Console.WriteLine($"Ім’я: {Name}");
-        Console.WriteLine($"Клас: {ClassType}");
-        Console.WriteLine($"Рівень: {Level}");
-        Console.WriteLine($"Здоров’я: {Health}");
-        Console.WriteLine($"Досвід: {Experience}");
-        Console.WriteLine($"Статус: {(IsAlive ? "Живий" : "Мертвий")}");
-        Console.WriteLine($"Опис: {Description}");
-        Console.WriteLine($"Досяг макс. рівня: {(IsMaxLevel ? "Так" : "Ні")}");
-        Console.WriteLine("----------------------------------\n");
+        public void ShowStats()
+        {
+            Console.WriteLine(
+                $"Імʼя: {Name}, Клас: {ClassType}, Рівень: {Level}, HP: {Health}, XP: {Experience}, Alive: {IsAlive}");
+        }
     }
 }
